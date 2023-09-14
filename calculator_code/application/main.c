@@ -62,6 +62,7 @@ enum {
 
 f32 Global_Af32Operands[8] = {0};
 u8  Global_u8Operations[8] = {0};
+
 u8 Local_u8It1 = 0, Local_u8It2 = 0,k;
 u8 Local_u8Iter, j;
 
@@ -80,7 +81,7 @@ f32 Global_f32Ans = 0;
 u8  Global_u8ShiftCnt = 0;
 f32 Global_f32mode = 1;
 u8  Global_u8Shift=0;
-s8 y;
+s8 Global_s8Iter;
 
 void Local_Clear(void)
 {
@@ -429,7 +430,7 @@ int main()
 			if(Global_u8PressedKey == 'i')
 			{
 				Set_bit(Global_u16HYP, DEC);
-				for(y =0; y<16; ++y) Global_u8Arr[y]=' ';
+				for(Global_s8Iter =0; Global_s8Iter<16; ++Global_s8Iter) Global_u8Arr[Global_s8Iter]=' ';
 				LCD_enuDisplayString("DEC");
 			}
 			else if(Global_u8PressedKey == 'z')
@@ -481,9 +482,9 @@ int main()
 					}
 					else{
 						Global_f32Num = Global_f32Num*10 + (Global_u8PressedKey-'0');
-						for(y = 15 ; y > 0; --y)
+						for(Global_s8Iter = 15 ; Global_s8Iter > 0; --Global_s8Iter)
 						{
-							Global_u8Arr[y] = Global_u8Arr[y-1];
+							Global_u8Arr[Global_s8Iter] = Global_u8Arr[Global_s8Iter-1];
 						}
 						Global_u8Arr[0] = Global_u8PressedKey;
 					}
@@ -502,9 +503,9 @@ int main()
 					if(!Get_bit(Global_u16HYP, HEX)) Set_bit(Global_u16HYP,NUMerror);
 					else
 					{
-						for(y = 15 ; y > 0; --y)
+						for(Global_s8Iter = 15 ; Global_s8Iter > 0; --Global_s8Iter)
 						{
-							Global_u8Arr[y] = Global_u8Arr[y-1];
+							Global_u8Arr[Global_s8Iter] = Global_u8Arr[Global_s8Iter-1];
 						}
 
 						if(Global_u8PressedKey =='x') Global_u8Arr[0] = 'A';
@@ -584,8 +585,8 @@ int main()
 						LCD_enuClearDisplay();
 						Global_f32Num =0;
 						Global_u16FLAGS = 2;
-						for(y=0 ;y<16;++y)Global_u8Arr[y]='0';
-						for(y=0 ;y<16;++y)Global_u8SecArr[y]='0';
+						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8Arr[Global_s8Iter]='0';
+						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8SecArr[Global_s8Iter]='0';
 						Global_u16HYP = 0;
 						Local_u8It2 =0;
 						Local_u8It1 =0;
@@ -594,10 +595,12 @@ int main()
 					}
 					else if(Get_bit(Global_u16HYP, DEC))
 					{
-						for(y=0 ;y<16;++y)Global_u8Arr[y]='0';
+						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8Arr[Global_s8Iter]='0';
 
 						if(Global_u8PressedKey == 'i')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("CED");
 							k=0;
 							Global_u16Num = Global_f32Num;
 							do {
@@ -606,35 +609,43 @@ int main()
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(y=0;  y < 15-k+1 ; ++y) LCD_enuSendChar(' ');
+							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
 							LCD_enuGoto(2,15-k+1);
 							LCD_enuWriteNumber(Global_f32Num);
 							LCD_enuSendCommand(0x04);
 						}
 						else if(Global_u8PressedKey == 'o')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("XEH");
 							Dec2Hex(Global_f32Num,Global_u8Arr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8Arr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8Arr[Global_s8Iter]);
 						}
 						else if(Global_u8PressedKey == 'z')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("NIB");
 							Dec2Bin(Global_f32Num,Global_u8Arr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8Arr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8Arr[Global_s8Iter]);
 						}
 						else if(Global_u8PressedKey == 'a')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("TCO");
 							Dec2Oct(Global_f32Num,Global_u8Arr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8Arr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8Arr[Global_s8Iter]);
 						}
 					}
 					else if(Get_bit(Global_u16HYP, OCT))
 					{
-						for(y=0 ;y<16;++y)Global_u8SecArr[y]  ='0';
+						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8SecArr[Global_s8Iter]  ='0';
 						if(Global_u8PressedKey == 'i')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("CED");
 							k=0;
 							Global_u16Num = Oct2Dec(Global_u8Arr);
 							do {
@@ -643,27 +654,33 @@ int main()
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(y=0;  y < 15-k+1 ; ++y) LCD_enuSendChar(' ');
+							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
 							LCD_enuGoto(2,15-k+1);
 							LCD_enuWriteNumber(Oct2Dec(Global_u8Arr));
 							LCD_enuSendCommand(0x04);
 						}
 						else if(Global_u8PressedKey == 'o')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("XEH");
 							Global_u16Num = Oct2Dec(Global_u8Arr);
 							Dec2Hex(Global_u16Num,Global_u8SecArr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8SecArr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8SecArr[Global_s8Iter]);
 						}
 						else if(Global_u8PressedKey == 'z')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("NIB");
 							Global_u16Num = Oct2Dec(Global_u8Arr);
 							Dec2Bin(Global_u16Num,Global_u8SecArr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8SecArr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8SecArr[Global_s8Iter]);
 						}
 						else if(Global_u8PressedKey == 'a')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("TCO");
 							LCD_enuGoto(2,15);
 							LCD_enuSendCommand(0x04);
 							LCD_enuDisplayString(Global_u8Arr);
@@ -671,9 +688,11 @@ int main()
 					}
 					else if(Get_bit(Global_u16HYP, BIN))
 					{
-						for(y=0 ;y<16;++y)Global_u8SecArr[y]  ='0';
+						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8SecArr[Global_s8Iter]  ='0';
 						if(Global_u8PressedKey == 'i')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("CED");
 							k=0;
 							Global_u16Num = Bin2Dec(Global_u8Arr);
 							do {
@@ -682,36 +701,45 @@ int main()
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(y=0;  y < 15-k+1 ; ++y) LCD_enuSendChar(' ');
+							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
 							LCD_enuGoto(2,15-k+1);
 							LCD_enuWriteNumber(Bin2Dec(Global_u8Arr));
 							LCD_enuSendCommand(0x04);
 						}
 						else if(Global_u8PressedKey == 'o')
-						{	Global_u16Num = Bin2Dec(Global_u8Arr);
+						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("XEH");
+							Global_u16Num = Bin2Dec(Global_u8Arr);
 							Dec2Hex(Global_u16Num,Global_u8SecArr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8SecArr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8SecArr[Global_s8Iter]);
 						}
 						else if(Global_u8PressedKey == 'z')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("NIB");
 							LCD_enuGoto(2,15);
 							LCD_enuSendCommand(0x04);
 							LCD_enuDisplayString(Global_u8Arr);
 						}
 						else if(Global_u8PressedKey == 'a')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("TCO");
 							Global_u16Num = Bin2Dec(Global_u8Arr);
 							Dec2Oct(Global_u16Num,Global_u8SecArr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8SecArr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8SecArr[Global_s8Iter]);
 						}
 					}
 					else if(Get_bit(Global_u16HYP, HEX))
 					{
-						for(y=0 ;y<16;++y)Global_u8SecArr[y]  ='0';
+						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8SecArr[Global_s8Iter]  ='0';
 						if(Global_u8PressedKey == 'i')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("CED");
 							k=0;
 							Global_u16Num = Hex2Dec(Global_u8Arr);
 							do {
@@ -720,30 +748,36 @@ int main()
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(y=0;  y < 15-k+1 ; ++y) LCD_enuSendChar(' ');
+							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
 							LCD_enuGoto(2,15-k+1);
 							LCD_enuWriteNumber(Hex2Dec(Global_u8Arr));
 							LCD_enuSendCommand(0x04);
 						}
 						else if(Global_u8PressedKey == 'o')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("XEH");
 							LCD_enuGoto(2,15);
 							LCD_enuSendCommand(0x04);
 							LCD_enuDisplayString(Global_u8Arr);
 						}
 						else if(Global_u8PressedKey == 'z')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("NIB");
 							Global_u16Num = Hex2Dec(Global_u8Arr);
 							Dec2Bin(Global_u16Num,Global_u8SecArr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8SecArr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8SecArr[Global_s8Iter]);
 						}
 						else if(Global_u8PressedKey == 'a')
 						{
+							LCD_enuGoto(1,14);
+							LCD_enuDisplayString("TCO");
 							Global_u16Num = Hex2Dec(Global_u8Arr);
 							Dec2Oct(Global_u16Num,Global_u8SecArr);
 							LCD_enuGoto(2,15);
-							for(y=15; y>=0; --y) LCD_enuSendChar(Global_u8SecArr[y]);
+							for(Global_s8Iter=15; Global_s8Iter>=0; --Global_s8Iter) LCD_enuSendChar(Global_u8SecArr[Global_s8Iter]);
 						}
 
 					}
