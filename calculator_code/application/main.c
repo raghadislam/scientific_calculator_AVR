@@ -14,14 +14,8 @@
 #include "../ATmega32_CTOS/SERVICE/BIT_MATH.h"
 #include "../ATmega32_CTOS/SERVICE/MATH.h"
 
-
-
-
 #include "../ATmega32_CTOS/HAL/keypad/Keypad_int.h"
 #include "../ATmega32_CTOS/HAL/LCD/LCD_int.h"
-
-
-
 
 enum {
 	negative,
@@ -63,8 +57,8 @@ enum {
 f32 Global_Af32Operands[8] = {0};
 u8  Global_u8Operations[8] = {0};
 
-u8 Local_u8It1 = 0, Local_u8It2 = 0,k;
-u8 Local_u8Iter, j;
+u8 Global_u8It1 = 0, Global_u8It2 = 0,Global_u8It3, Global_u8It4, Global_u8It5;
+s8  Global_s8Iter;
 
 u16 Global_u16Num =-1;
 
@@ -79,16 +73,15 @@ u16 Global_u16FLAGS = 2; // 0b00000010
 u16 Global_u16HYP = 0;
 f32 Global_f32Ans = 0;
 u8  Global_u8ShiftCnt = 0;
-f32 Global_f32mode = 1;
+f32 Global_f32mode = 1; // radian or degree
 u8  Global_u8Shift=0;
-s8 Global_s8Iter;
 
-void Local_Clear(void)
+void ClearGlobalVar(void)
 {
 	Global_f32Num = 0;
 	Global_u8Cnt=1;
-	Local_u8It1 =0;
-	Local_u8It2 =0;
+	Global_u8It1 =0;
+	Global_u8It2 =0;
 	Global_u8ShiftCnt = 0;
 	Global_u16FLAGS = 2;
 	Global_u16HYP = 0;
@@ -98,10 +91,12 @@ void Local_Clear(void)
 
 int main()
 {
+	// initialize LCD and keypad
 	LCD_enuInit();
 	Keypad_enuInit();
 
 
+	// start program
 	while(1)
 	{
 		Global_u8PressedKey = NOT_PRESSED;
@@ -115,6 +110,8 @@ int main()
 			}
 		}
 		Clr_bit(Global_u16FLAGS,must_clear);
+
+		/* check number of characters for each button to know when to shift the lcd screen */
 
 		if(Global_u8PressedKey == '!') LCD_enuDisplayString("sqrt("), Global_u8Shift+=5;
 		else if (Global_u8PressedKey == 's') LCD_enuDisplayString("sin("), Global_u8Shift+=4;
@@ -136,7 +133,7 @@ int main()
 		{
 			if(Global_u8Shift>16)
 			{
-				for(k=0;k<(Global_u8Shift-16); ++k)
+				for(Global_u8It3=0;Global_u8It3<(Global_u8Shift-16); ++Global_u8It3)
 				{
 					LCD_enuSendCommand(0x18);
 					Global_u8ShiftCnt++;
@@ -157,7 +154,6 @@ int main()
 			if(Global_u8PressedKey == 'e')
 			{
 				Global_f32Num = M_PI;
-				//LCD_enuWriteNumber(M_PI);
 				Global_u8Shift+=2;
 				LCD_enuDisplayString("PI");
 				continue;
@@ -199,7 +195,7 @@ int main()
 			}
 
 		}
-		else if(Global_u8PressedKey == '=') // calculating the result
+		else if(Global_u8PressedKey == '=') /* calculating the result */
 		{
 
 			if( Get_bit(Global_u16FLAGS,last_is_num) && !Get_bit(Global_u16FLAGS,first_is_op) && !Get_bit(Global_u16FLAGS,error) )
@@ -207,12 +203,12 @@ int main()
 
 				if(Get_bit(Global_u16FLAGS,Sin))
 				{
-					Global_Af32Operands[Local_u8It1] = _sin(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
+					Global_Af32Operands[Global_u8It1] = _sin(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16FLAGS,Cos ))
 				{
-					Global_Af32Operands[Local_u8It1] = _cos(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
+					Global_Af32Operands[Global_u8It1] = _cos(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16FLAGS,Sqrt))
@@ -221,7 +217,7 @@ int main()
 					{
 						Set_bit(Global_u16FLAGS, error);
 					}
-					Global_Af32Operands[Local_u8It1] = _sqrt(Global_f32Num);
+					Global_Af32Operands[Global_u8It1] = _sqrt(Global_f32Num);
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16FLAGS,Tan))
@@ -238,17 +234,17 @@ int main()
 						LCD_enuSendChar(')');
 					}
 
-					Global_Af32Operands[Local_u8It1] = _tan(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
+					Global_Af32Operands[Global_u8It1] = _tan(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16FLAGS,Exp ))
 				{
-					Global_Af32Operands[Local_u8It1] = expo(Global_f32Num);
+					Global_Af32Operands[Global_u8It1] = expo(Global_f32Num);
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16HYP,Atan))
 				{
-					Global_Af32Operands[Local_u8It1] = my_atan(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
+					Global_Af32Operands[Global_u8It1] = my_atan(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16HYP,Asin))
@@ -258,7 +254,7 @@ int main()
 						Set_bit(Global_u16FLAGS, error);
 						LCD_enuSendChar(')');
 					}
-					Global_Af32Operands[Local_u8It1] = my_asin(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
+					Global_Af32Operands[Global_u8It1] = my_asin(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16HYP,Acos))
@@ -269,27 +265,27 @@ int main()
 						LCD_enuSendChar(')');
 
 					}
-					Global_Af32Operands[Local_u8It1] = my_acos(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
+					Global_Af32Operands[Global_u8It1] = my_acos(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16HYP,Sinh))
 				{
-					Global_Af32Operands[Local_u8It1] = _sinh(Global_f32Num);
+					Global_Af32Operands[Global_u8It1] = _sinh(Global_f32Num);
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16HYP,Cosh))
 				{
-					Global_Af32Operands[Local_u8It1] = _cosh(Global_f32Num);
+					Global_Af32Operands[Global_u8It1] = _cosh(Global_f32Num);
 					LCD_enuSendChar(')');
 				}
 				else if(Get_bit(Global_u16HYP,Tanh))
 				{
-					Global_Af32Operands[Local_u8It1] = _tanh(Global_f32Num);
+					Global_Af32Operands[Global_u8It1] = _tanh(Global_f32Num);
 					LCD_enuSendChar(')');
 				}
 				else
 				{
-					Global_Af32Operands[Local_u8It1] = Global_f32Num;
+					Global_Af32Operands[Global_u8It1] = Global_f32Num;
 				}
 
 				Global_u16FLAGS &= 0xfa1f;
@@ -302,7 +298,7 @@ int main()
 					LCD_enuClearDisplay();
 					LCD_enuDisplayString("Math error!!..");
 
-					Local_Clear();
+					ClearGlobalVar();
 
 					Set_bit(Global_u16FLAGS,must_clear);
 					continue;
@@ -312,44 +308,44 @@ int main()
 				LCD_enuGoto(2,0);
 
 
-				for(Local_u8Iter = 0; Local_u8Iter < 8; ++Local_u8Iter)
+				for(Global_u8It4 = 0; Global_u8It4 < 8; ++Global_u8It4)
 				{
-					if(Global_u8Operations[Local_u8Iter] == ';')
+					if(Global_u8Operations[Global_u8It4] == ';')
 					{
 
-						Global_Af32Operands[Local_u8Iter] = _pow(Global_Af32Operands[Local_u8Iter], Global_Af32Operands[Local_u8Iter + 1]);
-						Global_Af32Operands[Local_u8Iter + 1] = 0;
-						Global_u8Operations[Local_u8Iter] = 0;
-						for(j = Local_u8Iter + 1; j < 7; ++j)
+						Global_Af32Operands[Global_u8It4] = _pow(Global_Af32Operands[Global_u8It4], Global_Af32Operands[Global_u8It4 + 1]);
+						Global_Af32Operands[Global_u8It4 + 1] = 0;
+						Global_u8Operations[Global_u8It4] = 0;
+						for(Global_u8It5 = Global_u8It4 + 1; Global_u8It5 < 7; ++Global_u8It5)
 						{
-							Global_Af32Operands[j] = Global_Af32Operands[j + 1];
+							Global_Af32Operands[Global_u8It5] = Global_Af32Operands[Global_u8It5 + 1];
 						}
-						for(j = Local_u8Iter ; j < 7; ++j)
+						for(Global_u8It5 = Global_u8It4 ; Global_u8It5 < 7; ++Global_u8It5)
 						{
-							Global_u8Operations[j] = Global_u8Operations[j + 1];
+							Global_u8Operations[Global_u8It5] = Global_u8Operations[Global_u8It5 + 1];
 						}
-						Local_u8Iter--;
+						Global_u8It4--;
 					}
 				}
 
-				for(Local_u8Iter = 0; Local_u8Iter < 8; ++Local_u8Iter)
+				for(Global_u8It4 = 0; Global_u8It4 < 8; ++Global_u8It4)
 				{
-					if(Global_u8Operations[Local_u8Iter] == '*' || Global_u8Operations[Local_u8Iter] == '/')
+					if(Global_u8Operations[Global_u8It4] == '*' || Global_u8Operations[Global_u8It4] == '/')
 					{
-						if(Global_u8Operations[Local_u8Iter] == '*') Global_Af32Operands[Local_u8Iter] *= Global_Af32Operands[Local_u8Iter + 1];
-						else Global_Af32Operands[Local_u8Iter] /= Global_Af32Operands[Local_u8Iter + 1];
+						if(Global_u8Operations[Global_u8It4] == '*') Global_Af32Operands[Global_u8It4] *= Global_Af32Operands[Global_u8It4 + 1];
+						else Global_Af32Operands[Global_u8It4] /= Global_Af32Operands[Global_u8It4 + 1];
 
-						Global_Af32Operands[Local_u8Iter + 1] = 0;
-						Global_u8Operations[Local_u8Iter] = 0;
-						for(j = Local_u8Iter + 1; j < 7; ++j)
+						Global_Af32Operands[Global_u8It4 + 1] = 0;
+						Global_u8Operations[Global_u8It4] = 0;
+						for(Global_u8It5 = Global_u8It4 + 1; Global_u8It5 < 7; ++Global_u8It5)
 						{
-							Global_Af32Operands[j] = Global_Af32Operands[j + 1];
+							Global_Af32Operands[Global_u8It5] = Global_Af32Operands[Global_u8It5 + 1];
 						}
-						for(j = Local_u8Iter ; j < 7; ++j)
+						for(Global_u8It5 = Global_u8It4 ; Global_u8It5 < 7; ++Global_u8It5)
 						{
-							Global_u8Operations[j] = Global_u8Operations[j + 1];
+							Global_u8Operations[Global_u8It5] = Global_u8Operations[Global_u8It5 + 1];
 						}
-						Local_u8Iter--;
+						Global_u8It4--;
 					}
 				}
 
@@ -361,23 +357,23 @@ int main()
 					Global_Af32Operands[1] = 0;
 					Global_u8Operations[0]=0;
 
-					for(j = 1; j < 6; ++j)
+					for(Global_u8It5 = 1; Global_u8It5 < 6; ++Global_u8It5)
 					{
-						Global_Af32Operands[j] = Global_Af32Operands[j + 1];
+						Global_Af32Operands[Global_u8It5] = Global_Af32Operands[Global_u8It5 + 1];
 					}
-					for(j = 0 ; j < 5; ++j)
+					for(Global_u8It5 = 0 ; Global_u8It5 < 5; ++Global_u8It5)
 					{
-						Global_u8Operations[j] = Global_u8Operations[j + 1];
+						Global_u8Operations[Global_u8It5] = Global_u8Operations[Global_u8It5 + 1];
 					}
 				}
 				LCD_enuWriteNumber(Global_Af32Operands[0]);
 				Global_f32Ans = Global_Af32Operands[0];
 				Global_Af32Operands[0] = 0;
-				Local_u8It2 = 0, Local_u8It1 = 0;
+				Global_u8It2 = 0, Global_u8It1 = 0;
 
 				if(Global_u8ShiftCnt > 0)
 				{
-					for(k=0; k<Global_u8ShiftCnt ; k++)
+					for(Global_u8It3=0; Global_u8It3<Global_u8ShiftCnt ; Global_u8It3++)
 					{
 						LCD_enuSendCommand(0x1c);
 					}
@@ -386,19 +382,19 @@ int main()
 				else if(Global_u8ShiftCnt < 0)
 				{
 					Global_u8ShiftCnt *= -1;
-					for(k=0; k<Global_u8ShiftCnt ; k++)
+					for(Global_u8It3=0; Global_u8It3<Global_u8ShiftCnt ; Global_u8It3++)
 					{
 						LCD_enuSendCommand(0x18);
 					}
 				}
 
-				for(k =0; k<8; ++k)
+				for(Global_u8It3 =0; Global_u8It3<8; ++Global_u8It3)
 				{
-					Global_u8Operations[k]= 0;
-					Global_Af32Operands[k]=0;
+					Global_u8Operations[Global_u8It3]= 0;
+					Global_Af32Operands[Global_u8It3]=0;
 				}
 
-				Local_Clear();
+				ClearGlobalVar();
 
 				Set_bit(Global_u16FLAGS,must_clear);
 
@@ -407,7 +403,7 @@ int main()
 			{
 				LCD_enuClearDisplay();
 				LCD_enuDisplayString("Math error!!.."); // something went wrong
-				Local_Clear();
+				ClearGlobalVar();
 				continue;
 			}
 
@@ -415,7 +411,7 @@ int main()
 		else if (Global_u8PressedKey == 'c') // clear the display
 		{
 			LCD_enuClearDisplay();
-			Local_Clear();
+			ClearGlobalVar();
 
 		}
 	        	/********************************** Number representation **********************************/
@@ -552,7 +548,7 @@ int main()
 				else if(Global_u8PressedKey == 'c')
 				{
 					LCD_enuClearDisplay();
-					Local_Clear();
+					ClearGlobalVar();
 					LCD_enuSendCommand(0x06);
 					Clr_bit(Global_u16HYP,NUMerror);
 					break;
@@ -563,7 +559,7 @@ int main()
 			{
 				LCD_enuClearDisplay();
 				LCD_enuDisplayString("Math error!!..");
-				Local_Clear();
+				ClearGlobalVar();
 				continue;
 			}
 			else if (Global_u8PressedKey!='c')
@@ -588,8 +584,8 @@ int main()
 						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8Arr[Global_s8Iter]='0';
 						for(Global_s8Iter=0 ;Global_s8Iter<16;++Global_s8Iter)Global_u8SecArr[Global_s8Iter]='0';
 						Global_u16HYP = 0;
-						Local_u8It2 =0;
-						Local_u8It1 =0;
+						Global_u8It2 =0;
+						Global_u8It1 =0;
 						Global_u8Cnt=1;
 						break;
 					}
@@ -601,16 +597,16 @@ int main()
 						{
 							LCD_enuGoto(1,14);
 							LCD_enuDisplayString("CED");
-							k=0;
+							Global_u8It3=0;
 							Global_u16Num = Global_f32Num;
 							do {
 								Global_u16Num /= 10;
-								++k;
+								++Global_u8It3;
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
-							LCD_enuGoto(2,15-k+1);
+							for(Global_s8Iter=0;  Global_s8Iter < 15-Global_u8It3+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
+							LCD_enuGoto(2,15-Global_u8It3+1);
 							LCD_enuWriteNumber(Global_f32Num);
 							LCD_enuSendCommand(0x04);
 						}
@@ -646,16 +642,16 @@ int main()
 						{
 							LCD_enuGoto(1,14);
 							LCD_enuDisplayString("CED");
-							k=0;
+							Global_u8It3=0;
 							Global_u16Num = Oct2Dec(Global_u8Arr);
 							do {
 								Global_u16Num /= 10;
-								++k;
+								++Global_u8It3;
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
-							LCD_enuGoto(2,15-k+1);
+							for(Global_s8Iter=0;  Global_s8Iter < 15-Global_u8It3+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
+							LCD_enuGoto(2,15-Global_u8It3+1);
 							LCD_enuWriteNumber(Oct2Dec(Global_u8Arr));
 							LCD_enuSendCommand(0x04);
 						}
@@ -693,16 +689,16 @@ int main()
 						{
 							LCD_enuGoto(1,14);
 							LCD_enuDisplayString("CED");
-							k=0;
+							Global_u8It3=0;
 							Global_u16Num = Bin2Dec(Global_u8Arr);
 							do {
 								Global_u16Num /= 10;
-								++k;
+								++Global_u8It3;
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
-							LCD_enuGoto(2,15-k+1);
+							for(Global_s8Iter=0;  Global_s8Iter < 15-Global_u8It3+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
+							LCD_enuGoto(2,15-Global_u8It3+1);
 							LCD_enuWriteNumber(Bin2Dec(Global_u8Arr));
 							LCD_enuSendCommand(0x04);
 						}
@@ -740,16 +736,16 @@ int main()
 						{
 							LCD_enuGoto(1,14);
 							LCD_enuDisplayString("CED");
-							k=0;
+							Global_u8It3=0;
 							Global_u16Num = Hex2Dec(Global_u8Arr);
 							do {
 								Global_u16Num /= 10;
-								++k;
+								++Global_u8It3;
 							} while (Global_u16Num != 0);
 							LCD_enuSendCommand(0x06);
 							LCD_enuGoto(2,0);
-							for(Global_s8Iter=0;  Global_s8Iter < 15-k+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
-							LCD_enuGoto(2,15-k+1);
+							for(Global_s8Iter=0;  Global_s8Iter < 15-Global_u8It3+1 ; ++Global_s8Iter) LCD_enuSendChar(' ');
+							LCD_enuGoto(2,15-Global_u8It3+1);
 							LCD_enuWriteNumber(Hex2Dec(Global_u8Arr));
 							LCD_enuSendCommand(0x04);
 						}
@@ -809,7 +805,7 @@ int main()
 
 			if(Global_u8Shift>16)
 			{
-				for(k=0;k<(Global_u8Shift-16); ++k)
+				for(Global_u8It3=0;Global_u8It3<(Global_u8Shift-16); ++Global_u8It3)
 				{
 					LCD_enuSendCommand(0x18);
 					Global_u8ShiftCnt++;
@@ -891,12 +887,12 @@ int main()
 
 			if(Get_bit(Global_u16FLAGS,Sin))
 			{
-				Global_Af32Operands[Local_u8It1] = _sin(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
+				Global_Af32Operands[Global_u8It1] = _sin(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16FLAGS,Cos ))
 			{
-				Global_Af32Operands[Local_u8It1] = _cos(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
+				Global_Af32Operands[Global_u8It1] = _cos(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16FLAGS,Sqrt))
@@ -907,7 +903,7 @@ int main()
 					LCD_enuSendChar(')');
 
 				}
-				Global_Af32Operands[Local_u8It1] = _sqrt(Global_f32Num);
+				Global_Af32Operands[Global_u8It1] = _sqrt(Global_f32Num);
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16FLAGS,Tan))
@@ -916,17 +912,17 @@ int main()
 				{
 					Set_bit(Global_u16FLAGS, error);
 				}
-				Global_Af32Operands[Local_u8It1] = _tan(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
+				Global_Af32Operands[Global_u8It1] = _tan(Global_f32Num*(M_PI/180.0)*(1/Global_f32mode));
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16FLAGS,Exp ))
 			{
-				Global_Af32Operands[Local_u8It1] = expo(Global_f32Num);
+				Global_Af32Operands[Global_u8It1] = expo(Global_f32Num);
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16HYP,Atan ))
 			{
-				Global_Af32Operands[Local_u8It1] = my_atan(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
+				Global_Af32Operands[Global_u8It1] = my_atan(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16HYP,Asin ))
@@ -935,7 +931,7 @@ int main()
 				{
 					Set_bit(Global_u16FLAGS, error);
 				}
-				Global_Af32Operands[Local_u8It1] = my_asin(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
+				Global_Af32Operands[Global_u8It1] = my_asin(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16HYP,Acos ))
@@ -944,27 +940,27 @@ int main()
 				{
 					Set_bit(Global_u16FLAGS, error);
 				}
-				Global_Af32Operands[Local_u8It1] = my_acos(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
+				Global_Af32Operands[Global_u8It1] = my_acos(Global_f32Num)*(180.0/M_PI)*Global_f32mode;
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16HYP,Sinh ))
 			{
-				Global_Af32Operands[Local_u8It1] = _sinh(Global_f32Num);
+				Global_Af32Operands[Global_u8It1] = _sinh(Global_f32Num);
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16HYP,Cosh ))
 			{
-				Global_Af32Operands[Local_u8It1] = _cosh(Global_f32Num);
+				Global_Af32Operands[Global_u8It1] = _cosh(Global_f32Num);
 				LCD_enuSendChar(')');
 			}
 			else if(Get_bit(Global_u16HYP,Tanh ))
 			{
-				Global_Af32Operands[Local_u8It1] = _tanh(Global_f32Num);
+				Global_Af32Operands[Global_u8It1] = _tanh(Global_f32Num);
 				LCD_enuSendChar(')');
 			}
-			else{ Global_Af32Operands[Local_u8It1] = Global_f32Num;
+			else{ Global_Af32Operands[Global_u8It1] = Global_f32Num;
 			}
-			Local_u8It1++;
+			Global_u8It1++;
 			if(Get_bit(Global_u16FLAGS, last_is_tri)) Global_u8Shift++;
 
 			Clr_bit(Global_u16FLAGS,Sin);
@@ -983,37 +979,37 @@ int main()
 
 			if(Global_u8PressedKey == '+')
 			{
-				Global_u8Operations[Local_u8It2] ='+';
+				Global_u8Operations[Global_u8It2] ='+';
 				LCD_enuSendChar('+');
 			}
 			else if(Global_u8PressedKey == '-')
 			{
-				Global_u8Operations[Local_u8It2] ='-';
+				Global_u8Operations[Global_u8It2] ='-';
 				LCD_enuSendChar('-');
 			}
 			else if(Global_u8PressedKey == '*')
 			{
-				Global_u8Operations[Local_u8It2] ='*';
+				Global_u8Operations[Global_u8It2] ='*';
 				LCD_enuSendChar('*');
 			}
 			else if(Global_u8PressedKey == '/')
 			{
-				Global_u8Operations[Local_u8It2] ='/';
+				Global_u8Operations[Global_u8It2] ='/';
 				LCD_enuSendChar('/');
 			}
 			else if(Global_u8PressedKey == ';')
 			{
-				Global_u8Operations[Local_u8It2] =';';
+				Global_u8Operations[Global_u8It2] =';';
 				LCD_enuSendChar('^');
 			}
 
-			Local_u8It2++;
+			Global_u8It2++;
 			Global_f32Num =0;
 			Clr_bit(Global_u16FLAGS, last_is_num);
 			Clr_bit(Global_u16FLAGS,last_is_tri);
 			if(Global_u8Shift>16)
 			{
-				for(k=0;k<(Global_u8Shift-16); ++k)
+				for(Global_u8It3=0;Global_u8It3<(Global_u8Shift-16); ++Global_u8It3)
 				{
 					LCD_enuSendCommand(0x18);
 					Global_u8ShiftCnt++;
@@ -1021,7 +1017,6 @@ int main()
 				Global_u8Shift=16;
 			}
 		}
-
 	}
 
 	return 0;
