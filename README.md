@@ -7,9 +7,13 @@
 📌 set of scientific functions, including:
 
 1-complex arithmetic operations
+
 2-trigonometric functions
+
 3-inverse trigonometric functions
+
 4-hyperbolic trigonometric functions
+
 
 📌 Versatility in number representation with support for binary, hexadecimal, and octal formats.
 
