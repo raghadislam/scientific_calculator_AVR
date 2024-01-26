@@ -1,7 +1,8 @@
-#Scientific Calculator using Atmega32
+# Scientific Calculator using Atmega32
+
 <img width="581" alt="Screenshot 2024-01-26 190532" src="https://github.com/raghadislam/scientific_calculator/assets/112733878/b59ec79a-88a2-4fdc-b003-3cf51c12dea7">
 
-#Features
+# Features
 
 📌 set of scientific functions, including:
 
