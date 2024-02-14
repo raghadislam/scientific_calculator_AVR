@@ -15,7 +15,7 @@
 4-hyperbolic trigonometric functions
 
 
-📌 Versatility in number representation with support for binary, hexadecimal, and octal formats.
+📌 Versatility in number representation with support for _**binary**_, **_hexadecimal_**, and **_octal_** formats.
 
 📌 Accommodates floating-point numbers, ensuring precision in mathematical calculations.
 
