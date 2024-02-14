@@ -36,3 +36,5 @@ and **_octal_** formats.
 📌 User-friendly interface with an LCD display for seamless operation.
 
 📌 Organized in a layered structure for modular and efficient development.
+
+**Watch the video included in the repository to see how it works!**
